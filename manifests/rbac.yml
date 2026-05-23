@@ -1,0 +1,67 @@
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: app-service-account
+  namespace: secure-app
+
+---
+
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: viewer-account
+  namespace: secure-app
+
+---
+
+apiVersion: rbac.authorization.k8s.io/v1
+kind: Role
+metadata:
+  name: app-role
+  namespace: secure-app
+rules:
+  - apiGroups: [""]
+    resources: ["pods", "configmaps"]
+    verbs: ["get", "list"]
+
+---
+
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  name: app-rolebinding
+  namespace: secure-app
+subjects:
+  - kind: ServiceAccount
+    name: app-service-account
+    namespace: secure-app
+roleRef:
+  kind: Role
+  name: app-role
+  apiGroup: rbac.authorization.k8s.io
+
+---
+
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  name: read-only-viewer
+rules:
+  - apiGroups: [""]
+    resources: ["nodes", "namespaces"]
+    verbs: ["get", "list", "watch"]
+
+---
+
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRoleBinding
+metadata:
+  name: viewer-clusterrolebinding
+subjects:
+  - kind: ServiceAccount
+    name: viewer-account
+    namespace: secure-app
+roleRef:
+  kind: ClusterRole
+  name: read-only-viewer
+  apiGroup: rbac.authorization.k8s.io
